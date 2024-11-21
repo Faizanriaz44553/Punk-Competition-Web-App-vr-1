@@ -67,22 +67,40 @@ const StripeFunction = async (event) => {
 
 form.addEventListener('submit', StripeFunction);
 
-
-
 // Ticket number and answer validation in modal
-
 let modalSubmit = document.getElementById('submit-details');
-const modalSubmitFuntion = async () => {
-    event.preventDefault()
+const modalSubmitFuntion = async (event) => {
+    event.preventDefault();
+    
     const userTicket = document.getElementById('ticket-number').value;
     const userAnswer = document.getElementById('question-answer').value;
-    let UserId = localStorage.getItem('cardId')
-    let filterNumber = Ticket.includes(userTicket)
-    console.log(filterNumber);
+    let UserId = localStorage.getItem('cardId');
+
+    // Validation for empty input fields
+    if (userTicket.trim() === "" || userAnswer.trim() === "") {
+        Toastify({
+            text: 'Both input fields are required, and ticket must be written perfectly.',
+            duration: 3000,
+            gravity: 'top',
+            position: 'left',
+            style: { background: 'linear-gradient(to right, #ff5f6d, #ffc371)' }
+        }).showToast();
+        return;  // Stop further execution if inputs are empty
+    }
 
     // Validate ticket number and answer from localStorage
+    let filterNumber = Ticket.includes(userTicket);
     if (filterNumber && userAnswer) {
-        // Success message
+        let ticketArray = Ticket.split(',').map(item => item.trim());
+        ticketArray = ticketArray.filter(item => item !== userTicket);  // Remove specific ticket
+
+        let updatedTicketString = ticketArray.join(', ');
+        const washingtonRef = doc(db, "post", UserId);
+        console.log(washingtonRef);
+
+        await updateDoc(washingtonRef, {
+            Ticket: updatedTicketString
+        });
         Toastify({
             text: 'Ticket verified! Withdrawal details will be live soon.',
             duration: 3000,
@@ -90,18 +108,6 @@ const modalSubmitFuntion = async () => {
             position: 'left',
             style: { background: 'linear-gradient(to right, #00b09b, #96c93d)' }
         }).showToast();
-
-        let ticketArray = Ticket.split(',').map(item => item.trim());
-
-        ticketArray = ticketArray.filter(item => item !== userTicket);  // 333 ko remove kar diya
-
-        let updatedTicketString = ticketArray.join(', ');
-        const washingtonRef = doc(db, "post", UserId);
-console.log(washingtonRef);
-
-        await updateDoc(washingtonRef, {
-            Ticket: updatedTicketString
-        });
         // Close modal and redirect to withdrawal details page
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -110,10 +116,18 @@ console.log(washingtonRef);
                 AllUserDataShow(loggedInEmail, userTicket, userAnswer);
             } else {
                 console.log("No user is currently logged in");
+                // Error message
+                Toastify({
+                    text: 'No user is currently logged in, please get in touch.',
+                    duration: 3000,
+                    gravity: 'top',
+                    position: 'left',
+                    style: { background: 'linear-gradient(to right, #ff5f6d, #ffc371)' }
+                }).showToast();
             }
         });
     } else {
-        // Error message
+        // Error message if ticket is invalid or answer is wrong
         Toastify({
             text: 'Invalid ticket number or wrong answer.',
             duration: 3000,
@@ -124,7 +138,7 @@ console.log(washingtonRef);
     }
 }
 
-modalSubmit.addEventListener('click', modalSubmitFuntion)
+modalSubmit.addEventListener('click', modalSubmitFuntion);
 
 
 
@@ -174,7 +188,7 @@ const addPurchaseData = async (userData, userTicket, userAnswer) => {
         localStorage.setItem('payId', JSON.stringify(""));
         paymentModal.style.display = 'none';
         checkOutContainer.style.display = 'none';
-        window.location.href = "/public/index.html";
+        setTimeout(()=>(window.location.href = "/public/index.html"), 3000)
     } catch (e) {
         console.error("Error adding document: ", e);
     }

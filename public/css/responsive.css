@@ -624,9 +624,12 @@
     }
 
     .header_section {
-        background-image: url(../assets/images/original-banner.jpg);
-        background-size: cover;
+        background-image: url(../assets/images/Web_Photo_Editor.jpg);
+        background-size: contain;
+        background-repeat: no-repeat;
         padding: 0px;
+        background-color: #000;
+        background-position: top center; 
     }
 
     body.home .header_section {
@@ -649,6 +652,7 @@
     .logo_mobile {
         width: 40%;
         padding: 0px;
+        margin-left: 10px;
     }
 
     .mobile_menu {
